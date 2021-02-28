@@ -14,8 +14,8 @@ def tokenize(text):
     # return list(filtered)
     return " ".join(filtered)
 def main(): 
-    text = open("../smallData.txt").read().lower()
-    # text = open("../storyData.txt").read().lower()
+    # text = open("../smallData.txt").read().lower()
+    text = open("../storyData.txt").read().lower()
 
     # print(len(text))
     # a=tokenize(text)
@@ -28,10 +28,23 @@ def main():
     numChars = len(chars)
     # print(chars)
     print('Unique Chars:', numChars)
-    # print(char_indices['h'])
-    # print(indices_char[3])
-
     print("Text length (chars):",lenText)
+
+    # arbitrary length for a sequence
+    seqLen = 20
+    stepSize = 2
+    inputSeq = []
+    outputChar = []
+    dataPairs = []
+    for i in range(0,lenText-seqLen, stepSize):
+        inputSeq.append(text[i:i+seqLen])
+        outputChar.append(text[i+seqLen])
+        dataPairs.append((text[i:i+seqLen],text[i+seqLen]))
+        # print(text[i:i+seqLen])
+        # print(text[i+seqLen])
+        # print("------------")
+    print(dataPairs[3][1])
+    print(len(inputSeq))
 
   
 if __name__=="__main__": 
