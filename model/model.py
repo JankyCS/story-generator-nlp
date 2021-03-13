@@ -36,15 +36,11 @@ def sample(preds, top_n=3):
 
 def sampleRandom(preds, top_n=3):
     preds = np.asarray(preds).astype('float64')
-    # print(preds)
     preds = np.log(preds)
-    # print(preds)
     exp_preds = np.exp(preds)
     preds = exp_preds / np.sum(exp_preds)
-    # print(preds)
     sampleList = [100, 200, 300, 400, 500]
     randomList = random.choices(range(len(preds)), weights=preds) 
-    print(randomList)
     return heapq.nlargest(top_n, range(len(preds)), preds.take)
 
 
@@ -89,21 +85,14 @@ def makePrediction():
 
     original_text = testInput
     completion = ''
-    print(original_text)
-    print("pogers1")
     gop = True
     count = 0
     while gop:
-        
-        # gop = False
-        # print("pogers3")
-        # x = prepare_input(text)
         x = np.zeros((1, seqLen, numChars))
         for t, char in enumerate(testInput):
             # print(char)
             x[0, t, charToIndices[char]] = 1.
         preds = model.predict(x, verbose=0)[0]
-        # print(preds)
         if count >= 40 and testInput[len(testInput)-1]==" ":
             print("COunt is ",count)
             op = sample(preds, top_n=5)
@@ -114,9 +103,6 @@ def makePrediction():
             count = -1
         else:
             next_index = sample(preds, top_n=1)[0]
-        # print("-----")
-        # print(sample(preds, top_n=1))
-        # print("-----")
         next_char = indicesToChar[next_index]
 
         count+=1
@@ -129,31 +115,22 @@ def makePrediction():
         if len(original_text + completion) > 1500:
             break
 
-
-
         # print(testInput)    
         if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
             print(original_text + completion)
 
     print(original_text + completion)
-    print("pogers2")
 
 def main(): 
     # text = open("../smallData.txt").read().lower()
     text = open("../storyData.txt").read().lower()
 
-    # print(len(text))
-    # a=tokenize(text)
-    # print(a)
     lenText = len(text)
 
     chars = sorted(list(set(text)))
     charToIndices = dict((c, i) for i, c in enumerate(chars))
     indicesToChar = dict((i, c) for i, c in enumerate(chars))
     numChars = len(chars)
-    print(chars)
-    print('Unique Chars:', numChars)
-    print("Text length (chars):",lenText)
 
     # arbitrary length for a sequence
     seqLen = 80
@@ -165,13 +142,7 @@ def main():
         inputSeq.append(text[i:i+seqLen])
         outputChar.append(text[i+seqLen])
         dataPairs.append((text[i:i+seqLen],text[i+seqLen]))
-        # print(text[i:i+seqLen])
-        # print(text[i+seqLen])
-        # print("------------")
-    # print(dataPairs[3][1])
-    # print(len(inputSeq))
 
-    # one hot encoding
     X = np.zeros((len(inputSeq), seqLen, numChars), dtype=np.bool)
     y = np.zeros((len(inputSeq), numChars), dtype=np.bool)
   
@@ -179,10 +150,6 @@ def main():
         for t, char in enumerate(seq):
             X[i, t, charToIndices[char]] = True
         y[i, charToIndices[outputChar[i]]] = True
-    
-    print(X.shape)
-    print(y.shape)
-
     
     model = Sequential()
     model.add(LSTM(numChars * 5, input_shape=(seqLen, numChars)))
@@ -202,67 +169,13 @@ def main():
 
     optimizer = RMSprop(lr=0.001)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    if False:
-        filepath = "model_weights_saved_80.hdf5"
-        checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-        desired_callbacks = [checkpoint]
 
-        model.fit(X, y, validation_split=0.05, batch_size=124, epochs=20, shuffle=True, callbacks=desired_callbacks)
-    else:
-        filename = "model_weights_saved_80.hdf5"
-        model.load_weights(filename)
-        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    filepath = "model_weights_saved_80.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+    desired_callbacks = [checkpoint]
 
-        # start = numpy.random.randint(0, len(x_data) - 1)
-        pattern = "i am very tired and"
-        pattern = [charToIndices[char] for char in pattern]
-
-        testInput = "he was a quiet, calculating man. many people wanted to "
-
-        while len(testInput) <80:
-            testInput = " "+testInput
-
-        original_text = testInput
-        completion = ''
-        print(original_text)
-        print("pogers1")
-        while True:
-            # print("pogers3")
-            # x = prepare_input(text)
-            x = np.zeros((1, seqLen, numChars))
-            for t, char in enumerate(testInput):
-                # print(char)
-                x[0, t, charToIndices[char]] = 1.
-            preds = model.predict(x, verbose=0)[0]
-            next_index = sample(preds, top_n=1)[0]
-            next_char = indicesToChar[next_index]
-            if len(testInput) > 79:
-                testInput = testInput[1:] + next_char
-            else:
-                testInput = testInput + next_char
-            completion += next_char
-
-            if len(original_text + completion) > 1500:
-                break
-
-            # print(testInput)    
-            if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
-                print(original_text + completion)
-
-        print(original_text + completion)
-        print("pogers2")
-
-        # for i in range(1000):
-        #     x = np.reshape(pattern, (1, len(pattern), 1))
-        #     x = x / float(numChars)
-        #     prediction = model.predict(x, verbose=0)
-        #     index = numpy.argmax(prediction)
-        #     result = indicesToChar[index]
-
-        #     sys.stdout.write(result)
-
-        #     pattern.append(index)
-        #     pattern = pattern[1:len(pattern)]
+    model.fit(X, y, validation_split=0.05, batch_size=124, epochs=20, shuffle=True, callbacks=desired_callbacks)
+    
         
 
 if __name__=="__main__": 
