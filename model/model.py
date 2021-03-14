@@ -93,8 +93,8 @@ def makePrediction(inputSequence, model, numWords):
             x[0, t, charToIndices[char]] = 1.
         preds = model.predict(x, verbose=0)[0]
 
-        # The first letter of 1/7 words will be chosen randomly
-        chance = random.randint(1,7)
+        # The first letter of 1/10 words will be chosen randomly
+        chance = random.randint(1,10)
         if chance == 1 and inputSequence[len(inputSequence)-1]==" ":
             op = sample(preds, top_n=5)
             rng = random.choices(op, weights=[0,16,8,4,2]) 
