@@ -20,14 +20,20 @@ def predict():
 
     inputText = body["inputText"]
 
-    pred = model.makePrediction(inputText, storyModel, numWords)
+    try:
+        pred = model.makePrediction(inputText, storyModel, numWords)
+        data["completedText"] = pred[0]
+        data["addedText"] = pred[1]
+        data["success"] = True
+    except:
+        data["message"] = "Invalid characters"
 
     
-    data["stuff1"] = pred[0]
-    data["stuff2"] = pred[1]
+    
     
     return jsonify(data)
 
 if __name__ == '__main__':
     storyModel = model.useModel()
+    model.makePrediction("primer", storyModel, 1)
     app.run()
