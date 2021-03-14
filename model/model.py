@@ -72,6 +72,9 @@ def makePrediction(inputSequence, model, numWords):
     indicesToChar = dict((i, c) for i, c in enumerate(chars))
     numChars = len(chars)
     seqLen = 80
+    
+    inputSequence = inputSequence.lower()
+    original_text = inputSequence
 
     if len(inputSequence)>80:
         inputSequence = inputSequence[-79:]
@@ -79,7 +82,6 @@ def makePrediction(inputSequence, model, numWords):
     while len(inputSequence) <80:
         inputSequence = " "+inputSequence
 
-    original_text = inputSequence
     completion = ''
     gop = True
     wordCount = 0
