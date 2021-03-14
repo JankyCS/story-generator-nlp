@@ -82,8 +82,6 @@ def makePrediction(inputSequence, model, numWords):
     original_text = inputSequence
     completion = ''
     gop = True
-    count = 0
-
     wordCount = 0
 
     print(original_text)
@@ -93,26 +91,21 @@ def makePrediction(inputSequence, model, numWords):
             # print(char)
             x[0, t, charToIndices[char]] = 1.
         preds = model.predict(x, verbose=0)[0]
-        if count >= 20 and inputSequence[len(inputSequence)-1]==" ":
-            # print("Count is ",count)
+
+        # The first letter of 1/7 words will be chosen randomly
+        chance = random.randint(1,7)
+        if chance == 1 and inputSequence[len(inputSequence)-1]==" ":
             op = sample(preds, top_n=5)
-            # print("random options: ")
-            # print(list(map(lambda x: indicesToChar[x],op)))
             rng = random.choices(op, weights=[0,16,8,4,2]) 
             next_index = rng[0]
-            count = -1
         else:
             next_index = sample(preds, top_n=1)[0]
         next_char = indicesToChar[next_index]
 
-        count+=1
         if next_char == ' ':
             wordCount+=1
 
-        if len(inputSequence) > 79:
-            inputSequence = inputSequence[1:] + next_char
-        else:
-            inputSequence = inputSequence + next_char
+        inputSequence = inputSequence[1:] + next_char
         completion += next_char
 
         print(next_char,end='')
@@ -120,8 +113,10 @@ def makePrediction(inputSequence, model, numWords):
             break
 
         # print(inputSequence)    
-        # if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
-            # print(original_text + completion)
+        if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
+            print(original_text + completion)
+
+        return (original_text + completion, completion)
 
     # print(original_text + completion)
     print("\nDone")
@@ -190,7 +185,7 @@ if __name__=="__main__":
             train()
         elif choice.lower() == 'p':
             inputSequence = input("Enter your input sentence/sequence:")
-            makePrediction(inputSequence.lower(), model, 20)
+            makePrediction(inputSequence.lower(), model, 50)
         else:
             print("Terminating")
             break
