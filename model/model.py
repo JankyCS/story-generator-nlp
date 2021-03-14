@@ -66,7 +66,7 @@ def sampleRandom(preds, top_n=3):
     randomList = random.choices(range(len(preds)), weights=preds) 
     return heapq.nlargest(top_n, range(len(preds)), preds.take)
 
-def makePrediction(inputSequence, model):
+def makePrediction(inputSequence, model, numWords):
     chars = [' ', '!', '"', '#', '$', '&', "'", '(', ')', '*', '+', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?', '[', ']', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '}', '\xa0', '¢', '£', '¦', '§', '¨', '©', 'ª', '«', '®', '¯', '´', '¶', 'â', 'ã', 'ˆ', '—', '”', '…', '€']
     charToIndices = dict((c, i) for i, c in enumerate(chars))
     indicesToChar = dict((i, c) for i, c in enumerate(chars))
@@ -83,6 +83,10 @@ def makePrediction(inputSequence, model):
     completion = ''
     gop = True
     count = 0
+
+    wordCount = 0
+
+    print(original_text)
     while gop:
         x = np.zeros((1, seqLen, numChars))
         for t, char in enumerate(inputSequence):
@@ -93,7 +97,7 @@ def makePrediction(inputSequence, model):
             # print("Count is ",count)
             op = sample(preds, top_n=5)
             # print("random options: ")
-            print(list(map(lambda x: indicesToChar[x],op)))
+            # print(list(map(lambda x: indicesToChar[x],op)))
             rng = random.choices(op, weights=[0,16,8,4,2]) 
             next_index = rng[0]
             count = -1
@@ -102,20 +106,25 @@ def makePrediction(inputSequence, model):
         next_char = indicesToChar[next_index]
 
         count+=1
+        if next_char == ' ':
+            wordCount+=1
+
         if len(inputSequence) > 79:
             inputSequence = inputSequence[1:] + next_char
         else:
             inputSequence = inputSequence + next_char
         completion += next_char
 
-        if len(original_text + completion) > 1500:
+        print(next_char,end='')
+        if wordCount >= numWords or len(original_text + completion) > 1500:
             break
 
         # print(inputSequence)    
-        if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
-            print(original_text + completion)
+        # if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
+            # print(original_text + completion)
 
-    print(original_text + completion)
+    # print(original_text + completion)
+    print("\nDone")
 
 def train(): 
     # text = open("../smallData.txt").read().lower()
@@ -178,13 +187,10 @@ if __name__=="__main__":
     while True:
         choice = input("Enter 'T' to Train. Enter 'P' to make a prediction. Enter anything else to terminate.")
         if choice.lower() == 't':
-            # dataPath = input("Enter the path to your training data .txt file (ex. ./storyData.txt):")
-            # fileName = input("Enter the name to save your model weights (ex. saved_weights.hdf5):")
             train()
         elif choice.lower() == 'p':
             inputSequence = input("Enter your input sentence/sequence:")
-            makePrediction(inputSequence, model)
-            print("Predicting")
+            makePrediction(inputSequence.lower(), model, 20)
         else:
             print("Terminating")
             break
