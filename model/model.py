@@ -22,32 +22,7 @@ def tokenize(text):
     return " ".join(filtered)
 
 def useModel():
-    filename = "model_weights_saved.hdf5"
-    model.load_weights(filename)
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-
-def sample(preds, top_n=3):
-    preds = np.asarray(preds).astype('float64')
-    preds = np.log(preds)
-    exp_preds = np.exp(preds)
-    preds = exp_preds / np.sum(exp_preds)
-
-    return heapq.nlargest(top_n, range(len(preds)), preds.take)
-
-def sampleRandom(preds, top_n=3):
-    preds = np.asarray(preds).astype('float64')
-    preds = np.log(preds)
-    exp_preds = np.exp(preds)
-    preds = exp_preds / np.sum(exp_preds)
-    sampleList = [100, 200, 300, 400, 500]
-    randomList = random.choices(range(len(preds)), weights=preds) 
-    return heapq.nlargest(top_n, range(len(preds)), preds.take)
-
-def makePrediction(inputSequence):
-    chars = [' ', '!', '"', '#', '$', '&', "'", '(', ')', '*', '+', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?', '[', ']', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '}', '\xa0', '¢', '£', '¦', '§', '¨', '©', 'ª', '«', '®', '¯', '´', '¶', 'â', 'ã', 'ˆ', '—', '”', '…', '€']
-    charToIndices = dict((c, i) for i, c in enumerate(chars))
-    indicesToChar = dict((i, c) for i, c in enumerate(chars))
-    numChars = len(chars)
+    numChars = 78
     seqLen = 80
 
     model = Sequential()
@@ -68,11 +43,38 @@ def makePrediction(inputSequence):
 
     optimizer = RMSprop(lr=0.001)
 
-    filename = "model_weights_saved.hdf5"
+    filename = "model_weights_saved_80.hdf5"
     model.load_weights(filename)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-    inputSequence = "as usual, they had attacked"
+    return model
+
+def sample(preds, top_n=3):
+    preds = np.asarray(preds).astype('float64')
+    preds = np.log(preds)
+    exp_preds = np.exp(preds)
+    preds = exp_preds / np.sum(exp_preds)
+
+    return heapq.nlargest(top_n, range(len(preds)), preds.take)
+
+def sampleRandom(preds, top_n=3):
+    preds = np.asarray(preds).astype('float64')
+    preds = np.log(preds)
+    exp_preds = np.exp(preds)
+    preds = exp_preds / np.sum(exp_preds)
+    sampleList = [100, 200, 300, 400, 500]
+    randomList = random.choices(range(len(preds)), weights=preds) 
+    return heapq.nlargest(top_n, range(len(preds)), preds.take)
+
+def makePrediction(inputSequence, model):
+    chars = [' ', '!', '"', '#', '$', '&', "'", '(', ')', '*', '+', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?', '[', ']', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '}', '\xa0', '¢', '£', '¦', '§', '¨', '©', 'ª', '«', '®', '¯', '´', '¶', 'â', 'ã', 'ˆ', '—', '”', '…', '€']
+    charToIndices = dict((c, i) for i, c in enumerate(chars))
+    indicesToChar = dict((i, c) for i, c in enumerate(chars))
+    numChars = len(chars)
+    seqLen = 80
+
+    if len(inputSequence)>80:
+        inputSequence = inputSequence[-79:]
 
     while len(inputSequence) <80:
         inputSequence = " "+inputSequence
@@ -87,7 +89,7 @@ def makePrediction(inputSequence):
             # print(char)
             x[0, t, charToIndices[char]] = 1.
         preds = model.predict(x, verbose=0)[0]
-        if count >= 40 and inputSequence[len(inputSequence)-1]==" ":
+        if count >= 20 and inputSequence[len(inputSequence)-1]==" ":
             # print("Count is ",count)
             op = sample(preds, top_n=5)
             # print("random options: ")
@@ -172,6 +174,7 @@ def train():
 
 if __name__=="__main__": 
     # print(loadForPredictions())
+    model = useModel()
     while True:
         choice = input("Enter 'T' to Train. Enter 'P' to make a prediction. Enter anything else to terminate.")
         if choice.lower() == 't':
@@ -180,7 +183,7 @@ if __name__=="__main__":
             train()
         elif choice.lower() == 'p':
             inputSequence = input("Enter your input sentence/sequence:")
-            makePrediction(inputSequence)
+            makePrediction(inputSequence, model)
             print("Predicting")
         else:
             print("Terminating")
