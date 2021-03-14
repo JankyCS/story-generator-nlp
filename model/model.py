@@ -88,7 +88,6 @@ def makePrediction(inputSequence, model, numWords):
     while gop:
         x = np.zeros((1, seqLen, numChars))
         for t, char in enumerate(inputSequence):
-            # print(char)
             x[0, t, charToIndices[char]] = 1.
         preds = model.predict(x, verbose=0)[0]
 
@@ -109,17 +108,11 @@ def makePrediction(inputSequence, model, numWords):
         completion += next_char
 
         print(next_char,end='')
+        
         if wordCount >= numWords or len(original_text + completion) > 1500:
             break
 
-        # print(inputSequence)    
-        if len(original_text + completion) > len(original_text)+2 and next_char == ' ':
-            print(original_text + completion)
-
-        return (original_text + completion, completion)
-
-    # print(original_text + completion)
-    print("\nDone")
+    return (original_text + completion, completion)
 
 def train(): 
     # text = open("../smallData.txt").read().lower()
@@ -177,7 +170,6 @@ def train():
     model.fit(X, y, validation_split=0.05, batch_size=124, epochs=20, shuffle=True, callbacks=desired_callbacks)
 
 if __name__=="__main__": 
-    # print(loadForPredictions())
     model = useModel()
     while True:
         choice = input("Enter 'T' to Train. Enter 'P' to make a prediction. Enter anything else to terminate.")
