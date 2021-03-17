@@ -6,11 +6,14 @@ import {
   Route
 } from "react-router-dom";
 
+import mainPage from "./components/mainPage";
+
 function App() {
   return (
     <Router>
       <div className="App">
         <Switch>
+          <Route exact path="/" component={mainPage} />
         </Switch>
       </div>
     </Router>
