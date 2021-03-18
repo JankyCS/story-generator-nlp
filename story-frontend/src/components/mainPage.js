@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 
-function mainPage(props) {
+function MainPage(props) {
+    const [storyText, setStoryText] = useState("");
+    const [paused, setPause] = useState(false);
+    
     return(
         <div className="container-fluid poppin">
         <div className="row align-items-center" style={{textAlign:"center",verticalAlign: "middle"}}>
@@ -11,7 +14,10 @@ function mainPage(props) {
                 <b>STORY HELPER</b> does stuff.
               </p>
                 <br/>
-             
+                <div className="form-group" style={{height:"40vh", width:"60vw", margin: "auto"}}>
+                    {/* <label for="exampleFormControlTextarea1">Example textarea</label> */}
+                    <textarea disabled="" className="form-control" id="exampleFormControlTextarea1" style={{height:"40vh", fontSize: 28}}></textarea>
+                </div>
               <br/>
             </div>
         </div>
@@ -19,4 +25,4 @@ function mainPage(props) {
     )
 }
 
-export default mainPage
+export default MainPage
