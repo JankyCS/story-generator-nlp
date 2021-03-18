@@ -5,9 +5,42 @@ function MainPage(props) {
     const [storyText, setStoryText] = useState("");
     const [paused, setPause] = useState(false);
     
-    const toggleGeneration = () => {
-        setPause(!paused)
+    const getWords = async () => {
+        
+        const body = {
+            inputText:storyText,
+            numWords:1
+        }
 
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // mode: 'no-cors',
+            body: JSON.stringify(body)
+        }
+
+        console.log(requestOptions)
+        var i = await fetch('http://localhost:5000/predict', requestOptions)
+            .then(response => {
+                const r = response.json()
+                console.log("R is "+JSON.stringify(r))
+                // this.setState({word:JSON.stringify(r)})
+                
+                return r
+            }).catch(err =>{
+                // setLoading(false)
+                alert('bruhh');
+                console.log(err);
+            });
+
+        console.log("R is "+i.completedText)
+
+    }
+
+    const toggleGeneration = async () => {
+        setPause(!paused)
+        console.log(storyText)
+        getWords()
     }
 
     return(
