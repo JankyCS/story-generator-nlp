@@ -1,11 +1,14 @@
 import flask
 from flask import request, jsonify
 import model
+from flask_cors import CORS
 
 storyModel = None
 app = flask.Flask(__name__)
+CORS(app)
 
 @app.route("/predict", methods=["POST"])
+# @cross_origin()
 def predict():
     data = {"success": False}
     body = request.json
@@ -28,9 +31,6 @@ def predict():
     except:
         data["message"] = "Invalid characters"
 
-    
-    
-    
     return jsonify(data)
 
 if __name__ == '__main__':
