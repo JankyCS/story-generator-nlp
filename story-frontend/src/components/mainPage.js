@@ -14,21 +14,23 @@ function MainPage(props) {
                 }
 
                 let requestOptions = {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        // mode: 'no-cors',
-                        body: JSON.stringify(body)
-                    }
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // mode: 'no-cors',
+                    body: JSON.stringify(body)
+                }
 
-                    // body.inputText = storyText
-                    // requestOptions.body = JSON.stringify(body)
-                    
+                // body.inputText = storyText
+                // requestOptions.body = JSON.stringify(body)
+                
 
-                    console.log(requestOptions)
-                    var i = await fetch('http://localhost:5000/predict', requestOptions)
-                    var r = await i.json()
-                    setStoryText(old => old+r.addedText)   
+                console.log(requestOptions)
+                var i = await fetch('http://localhost:5000/predict', requestOptions)
+                var r = await i.json()
+                setStoryText(old => old+r.addedText)   
             }
+            var dt = new Date();
+            while ((new Date()) - dt <= 500) { /* Do nothing */ }
             getWords()
         }
     }, [storyText,paused]);
