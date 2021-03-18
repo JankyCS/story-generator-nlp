@@ -16,13 +16,8 @@ function MainPage(props) {
                 let requestOptions = {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // mode: 'no-cors',
                     body: JSON.stringify(body)
                 }
-
-                // body.inputText = storyText
-                // requestOptions.body = JSON.stringify(body)
-                
 
                 console.log(requestOptions)
                 var i = await fetch('http://localhost:5000/predict', requestOptions)
@@ -30,43 +25,13 @@ function MainPage(props) {
                 setStoryText(old => old+r.addedText)   
             }
             var dt = new Date();
-            while ((new Date()) - dt <= 500) { /* Do nothing */ }
+            while ((new Date()) - dt <= 500) {}
             getWords()
         }
     }, [storyText,paused]);
 
-    const getWords = async () => {
-        let body = {
-            inputText:storyText,
-            numWords:1
-        }
-
-        let requestOptions = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // mode: 'no-cors',
-                body: JSON.stringify(body)
-            }
-
-            // body.inputText = storyText
-            // requestOptions.body = JSON.stringify(body)
-            
-
-            console.log(requestOptions)
-            var i = await fetch('http://localhost:5000/predict', requestOptions)
-            var r = await i.json()
-            setStoryText(old => old+r.addedText)
-                
-    }
-
     const toggleGeneration = async () => {
         setPause(!paused)
-
-        if(!paused){
-            console.log(storyText)
-            getWords()
-        }
-        
     }
 
     return(
@@ -83,7 +48,6 @@ function MainPage(props) {
                 <br />
                 <br />
                 <div className="form-group" style={{height:"40vh", width:"60vw", margin: "auto"}}>
-                    {/* <label for="exampleFormControlTextarea1">Example textarea</label> */}
                     <textarea
                         value={storyText}
                         onChange={(e)=>{setStoryText(e.target.value)}}
