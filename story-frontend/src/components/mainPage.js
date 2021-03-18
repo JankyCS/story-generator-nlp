@@ -1,46 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 
 function MainPage(props) {
     const [storyText, setStoryText] = useState("");
-    const [paused, setPause] = useState(false);
+    const [paused, setPause] = useState(true);
     
+    useEffect(() => {
+        if(!paused){
+            const getWords = async () => {
+                let body = {
+                    inputText:storyText,
+                    numWords:1
+                }
+
+                let requestOptions = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        // mode: 'no-cors',
+                        body: JSON.stringify(body)
+                    }
+
+                    // body.inputText = storyText
+                    // requestOptions.body = JSON.stringify(body)
+                    
+
+                    console.log(requestOptions)
+                    var i = await fetch('http://localhost:5000/predict', requestOptions)
+                    var r = await i.json()
+                    setStoryText(old => old+r.addedText)   
+            }
+            getWords()
+        }
+    }, [storyText,paused]);
+
     const getWords = async () => {
-        
-        const body = {
+        let body = {
             inputText:storyText,
             numWords:1
         }
 
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // mode: 'no-cors',
-            body: JSON.stringify(body)
-        }
+        let requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // mode: 'no-cors',
+                body: JSON.stringify(body)
+            }
 
-        console.log(requestOptions)
-        var i = await fetch('http://localhost:5000/predict', requestOptions)
-            .then(response => {
-                const r = response.json()
-                console.log("R is "+JSON.stringify(r))
-                // this.setState({word:JSON.stringify(r)})
+            // body.inputText = storyText
+            // requestOptions.body = JSON.stringify(body)
+            
+
+            console.log(requestOptions)
+            var i = await fetch('http://localhost:5000/predict', requestOptions)
+            var r = await i.json()
+            setStoryText(old => old+r.addedText)
                 
-                return r
-            }).catch(err =>{
-                // setLoading(false)
-                alert('bruhh');
-                console.log(err);
-            });
-
-        console.log("R is "+i.completedText)
-
     }
 
     const toggleGeneration = async () => {
         setPause(!paused)
-        console.log(storyText)
-        getWords()
+
+        if(!paused){
+            console.log(storyText)
+            getWords()
+        }
+        
     }
 
     return(
@@ -61,7 +85,7 @@ function MainPage(props) {
                     <textarea
                         value={storyText}
                         onChange={(e)=>{setStoryText(e.target.value)}}
-                        disabled={paused ? "disabled" : ""}
+                        disabled={!paused ? "disabled" : ""}
                         className="form-control"
                         id="exampleFormControlTextarea1"
                         style={{height:"40vh", fontSize: 28}}
