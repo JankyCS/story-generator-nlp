@@ -5,6 +5,11 @@ function MainPage(props) {
     const [storyText, setStoryText] = useState("");
     const [paused, setPause] = useState(false);
     
+    const toggleGeneration = () => {
+        setPause(!paused)
+
+    }
+
     return(
         <div className="container-fluid poppin">
         <div className="row align-items-center" style={{textAlign:"center",verticalAlign: "middle"}}>
@@ -13,10 +18,22 @@ function MainPage(props) {
               <p>
                 <b>STORY HELPER</b> does stuff.
               </p>
-                <br/>
+                <button type="button" className="btn btn-success" onClick={toggleGeneration}>
+                    GENERATE TEXT
+                </button>
+                <br />
+                <br />
                 <div className="form-group" style={{height:"40vh", width:"60vw", margin: "auto"}}>
                     {/* <label for="exampleFormControlTextarea1">Example textarea</label> */}
-                    <textarea disabled="" className="form-control" id="exampleFormControlTextarea1" style={{height:"40vh", fontSize: 28}}></textarea>
+                    <textarea
+                        value={storyText}
+                        onChange={(e)=>{setStoryText(e.target.value)}}
+                        disabled={paused ? "disabled" : ""}
+                        className="form-control"
+                        id="exampleFormControlTextarea1"
+                        style={{height:"40vh", fontSize: 28}}
+                    >
+                    </textarea>
                 </div>
               <br/>
             </div>
