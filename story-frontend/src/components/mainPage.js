@@ -24,82 +24,27 @@ function MainPage(props) {
                 var r = await i.json()
                 setStoryText(old => old+r.addedText)   
             }
-            var dt = new Date();
-            while ((new Date()) - dt <= 500) {}
+            // var dt = new Date();
+            // while ((new Date()) - dt <= 500) {}
             getWords()
         }
     }, [storyText,paused]);
 
     const spellingGrammar = async () => {
-        const body = {
-            text:storyText,
-            language: "en-US"
+        let body = {
+            inputText:storyText
         }
 
-        const requestOptions = {
+        let requestOptions = {
             method: 'POST',
-            headers: { "content-type": "application/x-www-form-urlencoded",
-	                    "x-rapidapi-key": "",
-	                    "x-rapidapi-host": "grammarbot.p.rapidapi.com"
-                    },
-            body: {
-                "text":"she go to the store.",
-                "language": "en-US"
-            }
-            
-            
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
         }
 
         console.log(requestOptions)
-
-        fetch("https://grammarbot.p.rapidapi.com/check", {
-            "method": "POST",
-            "headers": {
-                "content-type": "application/x-www-form-urlencoded",
-                "x-rapidapi-key": "",
-                "x-rapidapi-host": "grammarbot.p.rapidapi.com"
-            },
-            "body": {
-                "text": "Susan go to the store everyday",
-                "language": "en-US"
-            }
-        })
-        .then(response => {
-            console.log(response);
-        })
-        .catch(err => {
-            console.error(err);
-        });
-
-        // var i = await fetch('https://grammarbot.p.rapidapi.com/check', requestOptions)
-        // var r = await i.json()
-
-        // console.log(r)
-        // let matches = r.matches
-        // let newText =''
-        // let text = storyText
-        // let cursor = 0
-
-        // for(let i = 0;i<matches.length;i++){
-        //     let m = matches[i]
-        //     let offset = m.offset
-        //     let length = m.length
-        //     if(cursor>offset){
-        //         continue
-        //     }
-        //     newText += text.subString(cursor,offset)
-        //     let repls = m.replacements
-        //     if(repls && repls.length>0){
-        //         newText += repls[0].value
-        //     }
-        //     cursor = offset + length
-        // }
-
-        // if(cursor < text.length){
-        //     newText += text.subString(cursor)
-        // }
-
-        // setStoryText(newText)
+        var i = await fetch('http://localhost:5000/grammar', requestOptions)
+        var r = await i.json()
+        setStoryText(old => r.newText)   
     }
 
     const toggleGeneration = async () => {
@@ -117,7 +62,7 @@ function MainPage(props) {
                 <button type="button" className="btn btn-success" onClick={toggleGeneration}>
                     GENERATE TEXT
                 </button>
-                <button type="button" className="btn btn-success" onClick={spellingGrammar}>
+                <button type="button" className="btn btn-success" onClick={spellingGrammar} disabled={!paused ? "disabled" : ""}>
                     Grammar
                 </button>
                 <br />
