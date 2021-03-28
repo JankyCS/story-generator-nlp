@@ -66,6 +66,8 @@ def sampleRandom(preds, top_n=3):
     return heapq.nlargest(top_n, range(len(preds)), preds.take)
 
 def makePrediction(inputSequence, model, numWords):
+    if inputSequence.strip() == "":
+        return (inputSequence,"")
     chars = [' ', '!', '"', '#', '$', '&', "'", '(', ')', '*', '+', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?', '[', ']', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '}', '\xa0', '¢', '£', '¦', '§', '¨', '©', 'ª', '«', '®', '¯', '´', '¶', 'â', 'ã', 'ˆ', '—', '”', '…', '€']
     charToIndices = dict((c, i) for i, c in enumerate(chars))
     indicesToChar = dict((i, c) for i, c in enumerate(chars))
@@ -90,6 +92,7 @@ def makePrediction(inputSequence, model, numWords):
     completion = ''
     gop = True
     wordCount = 0
+    lastRandom = 0
 
     while gop:
         x = np.zeros((1, seqLen, numChars))
@@ -97,9 +100,9 @@ def makePrediction(inputSequence, model, numWords):
             x[0, t, charToIndices[char]] = 1.
         preds = model.predict(x, verbose=0)[0]
 
-        # The first letter of 1/10 words will be chosen randomly
-        chance = random.randint(1,10)
-        if chance == 1 and inputSequence[len(inputSequence)-1]==" ":
+        chance = random.randint(1,3)
+        if chance == 1 and inputSequence[len(inputSequence)-1]==" " and lastRandom >5:
+            lastRandom = 0
             op = sample(preds, top_n=5)
             rng = random.choices(op, weights=[0,16,8,4,2]) 
             next_index = rng[0]
@@ -109,6 +112,7 @@ def makePrediction(inputSequence, model, numWords):
 
         if next_char == ' ':
             wordCount+=1
+            lastRandom+=1
 
         inputSequence = inputSequence[1:] + next_char
         completion += next_char
