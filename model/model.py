@@ -15,7 +15,6 @@ import random
 def tokenize(text):
     tokenizer = RegexpTokenizer(r'\w+')
     tokens = tokenizer.tokenize(text)
-    print(tokens)
 
     filtered = filter(lambda token: token not in stopwords.words('english'), tokens)
     # return list(filtered)
@@ -73,8 +72,14 @@ def makePrediction(inputSequence, model, numWords):
     numChars = len(chars)
     seqLen = 80
     
-    inputSequence = inputSequence.lower()
     original_text = inputSequence
+    inputSequence = inputSequence.lower()
+    filtered = ""
+    for c in inputSequence:
+        if c in chars:
+            filtered+=c
+
+    inputSequence = filtered
 
     if len(inputSequence)>80:
         inputSequence = inputSequence[-79:]
@@ -86,7 +91,6 @@ def makePrediction(inputSequence, model, numWords):
     gop = True
     wordCount = 0
 
-    print(original_text)
     while gop:
         x = np.zeros((1, seqLen, numChars))
         for t, char in enumerate(inputSequence):
@@ -94,7 +98,7 @@ def makePrediction(inputSequence, model, numWords):
         preds = model.predict(x, verbose=0)[0]
 
         # The first letter of 1/10 words will be chosen randomly
-        chance = random.randint(1,20)
+        chance = random.randint(1,10)
         if chance == 1 and inputSequence[len(inputSequence)-1]==" ":
             op = sample(preds, top_n=5)
             rng = random.choices(op, weights=[0,16,8,4,2]) 
@@ -108,8 +112,6 @@ def makePrediction(inputSequence, model, numWords):
 
         inputSequence = inputSequence[1:] + next_char
         completion += next_char
-
-        print(next_char,end='')
         
         if wordCount >= numWords or len(original_text + completion) > 1500:
             break
