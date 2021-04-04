@@ -4,7 +4,14 @@ const Discord = require('discord.js')
 const client = new Discord.Client();
 
 const API = process.env.BACKEND_URL
-const BOT_CHANNEL = "📚story-time-"
+const BOT_ID = process.env.BOT_ID
+
+const CATEGORY = "📚story-time"
+const BOT_CHANNEL = "📝writing-corner"
+const STORAGE_CHANNEL = "📚completed-stories"
+
+
+
 let PREFIX = '!'
 
 const nextWordsEmbed = (nextWords) => {
@@ -94,17 +101,81 @@ const getStorySoFar = (channel) => {
     });
 }
 
+const createChannels = (guild) => {
+    let cat = guild.channels.cache.find(x => x.name == CATEGORY && x.type == 'category')
+    if(cat  == null){
+        guild.channels.create(CATEGORY, {
+            type: 'category',
+        }).then( cat => {
+            const writing = guild.channels.cache.find(x => x.name == BOT_CHANNEL)
+            const storage = guild.channels.cache.find(x => x.name == STORAGE_CHANNEL)
+            if(writing == null){
+                guild.channels.create(BOT_CHANNEL,{
+                    type: 'text', parent: cat.id ,
+                })
+                .then(channel => channel.send("INFO ON WHAT WRITING CHANNELS FOR").then(m => m.pin()))
+            }
+            else{
+                writing.setParent(cat.id).catch(e=>console.log(e));
+            }
+            if(storage == null){
+                guild.channels.create(STORAGE_CHANNEL,{
+                    type: 'text', parent: cat.id,
+                    permissionOverwrites: [
+                        { 
+                            id: guild.id,
+                            deny: ['SEND_MESSAGES'],
+                        },
+                        { 
+                            id: BOT_ID,
+                            allow: ['SEND_MESSAGES'],
+                        },
+                    ],
+                }).then(channel => channel.send("INFO ON WHAT STORAGE CHANNELS FOR").then(m => m.pin()))
+            }
+            else{
+                storage.setParent(cat.id).catch(e=>console.log(e));;
+            }
+        })
+    }
+    else{
+        const writing = guild.channels.cache.find(x => x.name == BOT_CHANNEL)
+        const storage = guild.channels.cache.find(x => x.name == STORAGE_CHANNEL)
+        if(writing == null){
+            guild.channels.create(BOT_CHANNEL,{ type: 'text', parent: cat.id }).then(channel => channel.send("INFO ON WHAT WRITING CHANNELS FOR").then(m => m.pin()))
+        }
+        else{
+            writing.setParent(cat.id).catch(e=>console.log(e));;
+        }
+        if(storage == null){
+            guild.channels.create(STORAGE_CHANNEL,{
+                type: 'text', parent: cat.id,
+                permissionOverwrites: [
+                { 
+                    id: guild.id,
+                    deny: ['SEND_MESSAGES'],
+                },
+                { 
+                    id: BOT_ID,
+                    allow: ['SEND_MESSAGES'],
+                },
+                
+            ],
+            }).then(channel => channel.send("INFO ON WHAT STORAGE CHANNELS FOR").then(m => m.pin()))
+        }
+        else{
+            storage.setParent(cat.id).catch(e=>console.log(e));;
+        }
+    }
+}
+
 
 client.login(process.env.BOT_TOKEN)
 
 //joined a servers
 client.on("guildCreate", guild => {
     console.log("Joined a new guild: " + guild.name);
-    var server = message.guild;
-    var name = message.author.username;
-    if(guild.channels.cache.find(x => x.name == BOT_CHANNEL) == null){
-        guild.createChannel(BOT_CHANNEL)
-    }
+    createChannels(guild)    
 })
 
 client.on("ready", () => {
@@ -114,31 +185,14 @@ client.on("ready", () => {
 client.on("message", msg => {
     if (msg.author.bot) return;
 
-    if(msg.content.toLowerCase() === PREFIX+"newstory"){
+    if(msg.content.toLowerCase() === PREFIX+"createchannels"){
         if(msg.channel.name.startsWith(BOT_CHANNEL)){
             badMessage(msg,"Cannot Create New Story In Story Channel")
             return
         }
 
         const guild = msg.guild
-        let count = 1
-        while(guild.channels.cache.find(channel => channel.name == BOT_CHANNEL+count.toString()) != null){
-            count++
-        }
-        // if(guild.channels.cache.find(channel => channel.name == BOT_CHANNEL+count.toString()) == null){
-            guild.channels.create(BOT_CHANNEL+count.toString(), { type: 'text',  reason: 'Story Writing Channel' }).then(c =>{
-                c.send("INFO ON HOW THE BOT WORKS, ETC.....")
-                msg.reply("Channel Created")
-            }).catch(e =>
-                {
-                    msg.reply("Error creating channel.")
-                    console.log(e)
-                }
-            )
-        // }
-        // else{
-        //     badMessage(msg,"Channel Already Exists")
-        // }
+        createChannels(guild)
     }
     else if(msg.channel.name.startsWith(BOT_CHANNEL)){
         if(!msg.content.startsWith(PREFIX)){
