@@ -1,4 +1,5 @@
 require('dotenv').config()
+const fetch = require("node-fetch");
 
 const Discord = require('discord.js')
 const client = new Discord.Client();
@@ -18,18 +19,17 @@ const nextWordsEmbed = (nextWords) => {
     return new Discord.MessageEmbed()
 	.setColor('#0099ff')
     .addField('Next Words', nextWords, false)
-	.addField('The Story So Far... ', nextWords, false)
-    .setFooter('Current Story Start Timestamp')
-    .setAuthor('JankyBot', 'https://jankycs.github.io/assets/jcs.png','https://jankycs.github.io')
+	// .addField('The Story So Far... ', nextWords, false)
+    // .setFooter('Current Story Start Timestamp')
+    // .setAuthor('JankyBot', 'https://jankycs.github.io/assets/jcs.png','https://jankycs.github.io')
 }
 
 const allWordsEmbed = (allWords) => {
     return new Discord.MessageEmbed()
 	.setColor('#0099ff')
-	.setTitle('The Story So Far...')
+	.setTitle('The Story')
 	.setAuthor('JankyBot', 'https://jankycs.github.io/assets/jcs.png','https://jankycs.github.io')
 	.setDescription(allWords)
-    .setFooter('Current Story Start Timestamp');
 }
 
 const badMessage = (msg,errorMessage)=>{
@@ -95,6 +95,71 @@ const getStorySoFar = (channel) => {
         }
         console.log("Wooo: "+storyString)
         // msgs.forEach(msg => console.log("Wooo: "+msg.content))
+    }).catch(err => {
+        console.log('Bruh');
+        console.log(err);
+    });
+}
+
+const readCurrentStory = (guild) => {
+    let storage = guild.channels.cache.find(x => x.name == STORAGE_CHANNEL)
+    if(storage == null) return
+    return storage.messages.fetch().then(msgs => {
+        let sorted = Array.from(msgs.values())//.sort((a, b) => b.createdAt > a.createdAt)
+        sorted.sort((a, b) => b.createdAt-a.createdAt)
+        // console.log(msgs)
+
+        for(let i = 0;i<sorted.length;i++){
+            if(sorted[i].author.bot && sorted[i].embeds.length>0){
+                let embed = sorted[i].embeds[0]
+                let words = embed.description
+                if(!words.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end")){
+                    return words
+                }
+            }
+        }
+        return ""
+        // console.log(storyString)
+        
+    }).catch(err => {
+        console.log('Bruh');
+        console.log(err);
+    });
+}
+
+const writeToStorage = async (text,guild) => {
+    let storage = guild.channels.cache.find(x => x.name == STORAGE_CHANNEL)
+    if(storage == null) return
+    return storage.messages.fetch().then(msgs => {
+        let sorted = Array.from(msgs.values())//.sort((a, b) => b.createdAt > a.createdAt)
+        sorted.sort((a, b) => b.createdAt-a.createdAt)
+        // console.log(msgs)
+        let storyString = null
+        let currentStoryMsg = null
+
+        for(let i = 0;i<sorted.length;i++){
+            if(sorted[i].author.bot && sorted[i].embeds.length>0){
+                let embed = sorted[i].embeds[0]
+                let words = embed.description
+                if(!words.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end")){
+                    storyString = words
+                    currentStoryMsg = sorted[i]
+                    break
+                }
+            }
+        }
+
+        if(currentStoryMsg != null){
+            let stuff = storyString
+            if(!(!!text.match(/^[.,:!?]/) || text.startsWith(" "))){
+                stuff+=" "
+            }
+            stuff +=text
+            currentStoryMsg.edit(allWordsEmbed(stuff))
+        }
+        else{
+            storage.send(allWordsEmbed(text))
+        }
     }).catch(err => {
         console.log('Bruh');
         console.log(err);
@@ -209,12 +274,32 @@ client.on("message", msg => {
                         badMessage(msg,'Missing Text')
                     }
                     else{
-                        msg.channel.send(nextWordsEmbed("woah"))
+                        // write their words to the STORAGE channel
+                        writeToStorage(rest,msg.guild).then(
+                            w => {
+                                // READ the storage channel for current full story
+                                readCurrentStory(msg.guild).then(a => {
+                                    console.log(a)
+                                    if(!rest.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end")){
+                                        getWords(a).then(k => {
+                                            msg.channel.send(nextWordsEmbed(k))
+                                            writeToStorage(k,msg.guild)
+                                        })
+                                    }
+                                    
+                                })
+                            }
+                        )
+                        
+                        // Call API to get prediction
+
+                        // write prediction to story channel, and send the embed
+                        // msg.channel.send(nextWordsEmbed("woah"))
                     }
                     break;
                 case "read":
                     msg.channel.send(allWordsEmbed("poggers"))
-                    getStorySoFar(msg.channel)
+                    readCurrentStory(msg.guild).then(a => console.log(a))
                     break;
                 default:
                     badMessage(msg,'Invalid Command')
