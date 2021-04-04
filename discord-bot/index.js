@@ -27,7 +27,7 @@ const nextWordsEmbed = (nextWords) => {
 const allWordsEmbed = (allWords) => {
     return new Discord.MessageEmbed()
 	.setColor('#0099ff')
-	.setTitle('The Story')
+	.setTitle('Story')
 	.setAuthor('JankyBot', 'https://jankycs.github.io/assets/jcs.png','https://jankycs.github.io')
 	.setDescription(allWords)
 }
@@ -42,7 +42,7 @@ const badMessage = (msg,errorMessage)=>{
 
 const getWords = async (storyText) => {
     let body = {
-        inputText:storyText,
+        inputText:storyText+" ",
         numWords:5
     }
 
@@ -130,7 +130,7 @@ const readCurrentStory = (guild) => {
 const writeToStorage = async (text,guild) => {
     let storage = guild.channels.cache.find(x => x.name == STORAGE_CHANNEL)
     if(storage == null) return
-    return storage.messages.fetch().then(msgs => {
+    return storage.messages.fetch().then(async msgs => {
         let sorted = Array.from(msgs.values())//.sort((a, b) => b.createdAt > a.createdAt)
         sorted.sort((a, b) => b.createdAt-a.createdAt)
         // console.log(msgs)
@@ -141,7 +141,7 @@ const writeToStorage = async (text,guild) => {
             if(sorted[i].author.bot && sorted[i].embeds.length>0){
                 let embed = sorted[i].embeds[0]
                 let words = embed.description
-                if(!words.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end")){
+                if(!words.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end") && words.length<2000){
                     storyString = words
                     currentStoryMsg = sorted[i]
                     break
@@ -155,10 +155,25 @@ const writeToStorage = async (text,guild) => {
                 stuff+=" "
             }
             stuff +=text
-            currentStoryMsg.edit(allWordsEmbed(stuff))
+            
+            let body = {
+                inputText:stuff
+            }
+
+            let requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }
+
+            console.log(requestOptions)
+            var i = await fetch(API+'/grammar', requestOptions)
+            var r = await i.json()
+
+            await currentStoryMsg.edit(allWordsEmbed(r.newText.substring(0,2000)))
         }
         else{
-            storage.send(allWordsEmbed(text))
+            storage.send(allWordsEmbed(text.substring(0,2000)))
         }
     }).catch(err => {
         console.log('Bruh');
@@ -280,7 +295,7 @@ client.on("message", msg => {
                                 // READ the storage channel for current full story
                                 readCurrentStory(msg.guild).then(a => {
                                     console.log(a)
-                                    if(!rest.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end")){
+                                    if(a.length<2000 && !rest.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase().trim().endsWith("the end")){
                                         getWords(a).then(k => {
                                             msg.channel.send(nextWordsEmbed(k))
                                             writeToStorage(k,msg.guild)
@@ -298,8 +313,10 @@ client.on("message", msg => {
                     }
                     break;
                 case "read":
-                    msg.channel.send(allWordsEmbed("poggers"))
-                    readCurrentStory(msg.guild).then(a => console.log(a))
+                    // msg.channel.send(allWordsEmbed("poggers"))
+                    readCurrentStory(msg.guild).then(a => {
+                        msg.channel.send(allWordsEmbed(a))
+                    })
                     break;
                 default:
                     badMessage(msg,'Invalid Command')
