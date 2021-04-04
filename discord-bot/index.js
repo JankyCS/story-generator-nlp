@@ -4,13 +4,16 @@ const Discord = require('discord.js')
 const client = new Discord.Client();
 
 const API = process.env.BACKEND_URL
-const BOT_CHANNEL = "story-time-📚"
+const BOT_CHANNEL = "📚story-time-"
 let PREFIX = '!'
 
 const nextWordsEmbed = (nextWords) => {
     return new Discord.MessageEmbed()
 	.setColor('#0099ff')
-	.addField('Next Words', nextWords, true)
+    .addField('Next Words', nextWords, false)
+	.addField('The Story So Far... ', nextWords, false)
+    .setFooter('Current Story Start Timestamp')
+    .setAuthor('JankyBot', 'https://jankycs.github.io/assets/jcs.png','https://jankycs.github.io')
 }
 
 const allWordsEmbed = (allWords) => {
@@ -19,6 +22,7 @@ const allWordsEmbed = (allWords) => {
 	.setTitle('The Story So Far...')
 	.setAuthor('JankyBot', 'https://jankycs.github.io/assets/jcs.png','https://jankycs.github.io')
 	.setDescription(allWords)
+    .setFooter('Current Story Start Timestamp');
 }
 
 const badMessage = (msg,errorMessage)=>{
@@ -51,6 +55,46 @@ const getWords = async (storyText) => {
     return r.addedText
 }
 
+const getStorySoFar = (channel) => {
+    channel.messages.fetch().then(msgs => {
+        // console.log(msgs)
+        // msgs.sort((a, b) => b.createdAt < a.createdAt)
+        let sorted = Array.from(msgs.values())//.sort((a, b) => b.createdAt > a.createdAt)
+        sorted.sort((a, b) => a.createdAt-b.createdAt)
+        // console.log(msgs)
+        let storyString = ""
+        for(let i = 0;i<sorted.length;i++){
+            let msg = sorted[i].content
+            if(msg.startsWith(PREFIX)){
+                const words = msg.split(/\s+/)
+                const command = words[0].substring(PREFIX.length).toLowerCase()
+                const rest = msg.substring(words[0].length+1)
+                if(command == "write"){
+                    storyString +=rest
+                }
+            }
+            else if(sorted[i].author.bot && sorted[i].embeds.length>0){
+                let embed = sorted[i].embeds[0]
+                const words = embed.fields.filter(x => x.name = "Next Words")
+                if (words.length>0){
+                    const w = words[0].value
+                    storyString += w
+                }
+            }
+
+
+
+            
+        }
+        console.log("Wooo: "+storyString)
+        // msgs.forEach(msg => console.log("Wooo: "+msg.content))
+    }).catch(err => {
+        console.log('Bruh');
+        console.log(err);
+    });
+}
+
+
 client.login(process.env.BOT_TOKEN)
 
 //joined a servers
@@ -70,10 +114,19 @@ client.on("ready", () => {
 client.on("message", msg => {
     if (msg.author.bot) return;
 
-    if(msg.content === PREFIX+"createChannel"){
+    if(msg.content.toLowerCase() === PREFIX+"newstory"){
+        if(msg.channel.name.startsWith(BOT_CHANNEL)){
+            badMessage(msg,"Cannot Create New Story In Story Channel")
+            return
+        }
+
         const guild = msg.guild
-        if(guild.channels.cache.find(channel => channel.name == BOT_CHANNEL) == null){
-            guild.channels.create(BOT_CHANNEL, { type: 'text',  reason: 'Story Writing Channel' }).then(c =>{
+        let count = 1
+        while(guild.channels.cache.find(channel => channel.name == BOT_CHANNEL+count.toString()) != null){
+            count++
+        }
+        // if(guild.channels.cache.find(channel => channel.name == BOT_CHANNEL+count.toString()) == null){
+            guild.channels.create(BOT_CHANNEL+count.toString(), { type: 'text',  reason: 'Story Writing Channel' }).then(c =>{
                 c.send("INFO ON HOW THE BOT WORKS, ETC.....")
                 msg.reply("Channel Created")
             }).catch(e =>
@@ -82,32 +135,32 @@ client.on("message", msg => {
                     console.log(e)
                 }
             )
-        }
-        else{
-            badMessage(msg,"Channel Already Exists")
-        }
+        // }
+        // else{
+        //     badMessage(msg,"Channel Already Exists")
+        // }
     }
-    else if(msg.channel.name == BOT_CHANNEL){
+    else if(msg.channel.name.startsWith(BOT_CHANNEL)){
         if(!msg.content.startsWith(PREFIX)){
             badMessage(msg,'Only bot commands allowed!')
         }
         else{
             const words = msg.content.split(/\s+/)
-            const command = words[0].substring(PREFIX.length,).toLowerCase()
+            const command = words[0].substring(PREFIX.length).toLowerCase()
             const rest = msg.content.substring(words[0].length+1)
 
             switch(command){
                 case "write":
                     if(rest == ''){
-                        badMessage('Missing Text')
+                        badMessage(msg,'Missing Text')
                     }
                     else{
-
+                        msg.channel.send(nextWordsEmbed("woah"))
                     }
                     break;
                 case "read":
-
                     msg.channel.send(allWordsEmbed("poggers"))
+                    getStorySoFar(msg.channel)
                     break;
                 default:
                     badMessage(msg,'Invalid Command')
