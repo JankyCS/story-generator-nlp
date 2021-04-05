@@ -43,7 +43,7 @@ const badMessage = (msg,errorMessage)=>{
 const getWords = async (storyText) => {
     let body = {
         inputText:storyText+" ",
-        numWords:5
+        numWords:6
     }
 
     let requestOptions = {
@@ -55,11 +55,8 @@ const getWords = async (storyText) => {
     console.log(requestOptions)
     var i = await fetch(API+'/predict', requestOptions)
     var r = await i.json()
-
-    if(r.addedText==="consul "){
-        r.addedText = "thing "
-    }
-    return r.addedText
+    
+    return r.addedText.replace("consul","thing").replace("country","place")
 }
 
 const getStorySoFar = (channel) => {
