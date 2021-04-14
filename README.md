@@ -1,6 +1,6 @@
 # Writing Buddy
 
-WRITING BUDDY is a proof of concept/prototype, AI writing assistant, to help provide direction and overcome writing blocks. 
+WRITING BUDDY is an AI powered collaborative writing tool, served as a Discord Bot, and as a React App. DEMO VIDEO AND LINK TO ADD THE BOT TO YOUR SERVER SOON.
 
 ## How It Works/Tech Stack
 
@@ -16,16 +16,13 @@ The dataset was divided into input strings, and output characters—the characte
 
 ### Webapp
 
-The text prediction is served as a Flask server, which is served to the end-user through a ReactJS frontend.
+The text prediction is served as a Flask server, which is served to the end-user through a Discord Bot, or a ReactJS frontend.
 
 ## Limitations
 
 Ultimately, the project is more of a proof-of-concept, than a polished, viable solution for authors. Although the text generates correct English words and generally uses correct grammar, it still struggles to maintain a cohesive thought, and can sometimes get stuck in "word loops". It also has phrases/ words that it frequents, such as "country", "consul", and "sun".
 
 These limitations are a product of both the small training data provided, as well as its character-level text generation. Word-level text generation with word embeddings/vectors may be more effective, but requires a larger dataset than we had on hand.
-
-## Usage
-To try out the application, just start the Flask server backend, and then run npm start on the frontend. truee.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
