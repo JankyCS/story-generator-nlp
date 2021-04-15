@@ -9,7 +9,7 @@ The text is generated at a character-level, using a Long Short-Term Memory (LSTM
 
 ### Data/Preprocessing
 
-The dataset is comprised of 153 short stories, scraped from [Classic Shorts](www.classicshorts.com/bib.html) using BeautifulSoup. It contains 3422389 characters and 611454 words, which ultimately amounts to 855649 training examples for the neural network.
+The dataset is comprised of 153 short stories, scraped from [Classic Shorts](https://www.classicshorts.com/bib.html) using BeautifulSoup. It contains 3422389 characters and 611454 words, which ultimately amounts to 855649 training examples for the neural network.
 
 The dataset was divided into input strings, and output characters—the character immediately after the input string. The data is encoded using one hot encryption.
 
