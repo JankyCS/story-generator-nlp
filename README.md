@@ -1,6 +1,6 @@
 # Writing Buddy
 
-WRITING BUDDY is an AI powered collaborative writing tool, served as a Discord Bot, and as a React App. DEMO VIDEO AND PUBLIC RELEASE BY MAY 1st.
+WRITING BUDDY is an AI powered collaborative writing tool, served as a Discord Bot, and as a React App.
 ## How It Works/Tech Stack
 
 ### Model
