@@ -13,7 +13,7 @@ The dataset is comprised of 153 short stories, scraped from [Classic Shorts](htt
 
 The dataset was divided into input strings, and output characters—the character immediately after the input string. The data is encoded using one hot encryption.
 
-### Webapp
+### Webapp/Discord Bot
 
 The text prediction is served as a Flask server, which is served to the end-user through a Discord Bot, or a ReactJS frontend.
 
